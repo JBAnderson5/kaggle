@@ -85,6 +85,24 @@ def saveResults(predictionMatrix):
     fileName="submission.csv"
     pd.DataFrame(predictionMatrix).to_csv(fileName,header="PassengerID,Survived")
 
+def testResults(predictionMatrix):
+    global realValues
+    correct = 0
+    total = predictionMatrix.shape[0]
+
+    realValues = np.sort(realValues,axis=0)
+    predictionMatrix = np.sort(predictionMatrix,axis=0)
+    if(verbose):
+        print(realValues)
+        print(predictionMatrix)
+    for i in range(total):
+        if(realValues[i,1] == predictionMatrix[i,1]):
+            correct+=1
+
+    print(correct/total)
+
 
 #realTest()
 loadData()
+arr = np.empty(realValues.shape)
+evalResults(arr)
