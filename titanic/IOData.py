@@ -1,7 +1,8 @@
 #file loads data from the csv files
 
 import pandas as pd
-import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
 
 verbose = True
 
@@ -15,65 +16,71 @@ def realTest(): #TODO: implement this after getting practice to run correctly
     practice = False
 
 
-trainingData = np.empty(0)
-testData = np.empty(0)
-realValues = np.empty(0)
-
 def loadData():
-    loadTrainingData()
+    dataframe = loadTrainingData()
 
     if(practice):
-        splitTrainingData()
+        train, test, val = splitTrainingData(dataframe)
     else:
-        loadTestingData()
+        train, val = train_test_split(dataframe, test_size = 0.2)
+        test = loadTestingData()
 
-    return trainingData.copy(),testData.copy()
+    return train, test, val
 
 #loads training data from csv file
 def loadTrainingData():
-    global trainingData
     fileName = "train.csv"
 
-    trainingData = pd.read_csv(fileName,delimiter = ",").to_numpy()
+    dataframe = pd.read_csv(fileName,delimiter = ",")
+    dataframe.head()
+
+    dataframe = preprocessData(dataframe)
 
     if(verbose):
-        print(trainingData[0,:])
+        print(dataframe)
+
+    return dataframe
 
 
+def preprocessData(dataframe):
+    print(dataframe.count())
+
+    var_encodes = ["Ticket","Name","Sex","Cabin","Embarked"]
+    labelEncoder = preprocessing.LabelEncoder()
+    for i in var_encodes:
+        dataframe[i] = labelEncoder.fit_transform(dataframe[i].fillna("0"))
+
+    print(dataframe.count())
+    return dataframe
 
 #splits training data into training and testing for practice
-def splitTrainingData():
-    global trainingData, testData, realValues
-    #shuffle array and split part of it into testing
-    np.random.shuffle(trainingData)
+def splitTrainingData(dataframe):
 
-
-    size = trainingData.shape[0]
-    testSize = int(0.3 * size)
-
-    testData = trainingData[0:testSize,:]
-    realValues = testData[:,0:2]
-    testData = np.delete(testData,1,axis=1)
-    trainingData = trainingData[testSize:size,:]
-
-
+    train, test = train_test_split(dataframe, test_size = 0.2)
+    train, val = train_test_split(train, test_size = 0.2)
 
     if(verbose):
-        print(trainingData)
-        print(trainingData.shape)
-        print(testData)
-        print(realValues)
+        print(len(train),"train examples")
+        print(len(val), "validation examples")
+        print(len(test), "test examples")
+
+    return train, test, val
 
 #loads testing data from csv file
 def loadTestingData():
     global testData
     fileName = "test.csv"
 
-    testData = pd.read_csv(fileName,delimiter=",").to_numpy()
+    testDataFrame = pd.read_csv(fileName,delimiter=",")
+
+    testDataFrame = preprocessData(testDataFrame)
 
     if(verbose):
-        print(testData)
+        print(testDataFrame)
 
+    return testDataFrame
+
+#TODO: rework the eval results, save results and test results later
 def evalResults(predictionMatrix):
     if(practice):
         testResults(predictionMatrix)
@@ -103,6 +110,6 @@ def testResults(predictionMatrix):
 
 
 #realTest()
-loadData()
-arr = np.empty(realValues.shape)
-evalResults(arr)
+#loadData()
+#arr = np.empty(realValues.shape)
+#evalResults(arr)
